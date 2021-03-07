@@ -1,6 +1,8 @@
 package planet
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // Planet entity.
 type Planet struct {

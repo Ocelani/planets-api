@@ -4,7 +4,7 @@ type (
 	// Service is an interface from which our api module can access our repository.
 	Service interface {
 		Insert(planet *Planet) (*Planet, error)
-		FindAll() (*[]Planet, error)
+		FindAll() ([]*Planet, error)
 		FindOne(id string) (*Planet, error)
 		Update(planet *Planet) (*Planet, error)
 		Remove(id string) error
@@ -15,8 +15,8 @@ type (
 )
 
 // NewService is used to create a single instance of the service.
-func NewService(r Repository) Service {
-	return &service{repository: r}
+func NewService() Service {
+	return &service{repository: NewRepository()}
 }
 
 // Insert Planet.
@@ -25,7 +25,7 @@ func (s *service) Insert(planet *Planet) (*Planet, error) {
 }
 
 // FindAll Planets.
-func (s *service) FindAll() (*[]Planet, error) {
+func (s *service) FindAll() ([]*Planet, error) {
 	return s.repository.ReadAll()
 }
 

@@ -17,7 +17,7 @@ type KeywordsFinder struct {
 	Quit     chan bool
 }
 
-func GetPlanetsFromAPI() []planet.Planet {
+func GetPlanetsFromSWAPI() []*planet.Planet {
 	resp, err := http.Get("https://swapi.dev/api/planets/")
 	if err != nil {
 		log.Fatal(err)
@@ -34,6 +34,7 @@ func GetPlanetsFromAPI() []planet.Planet {
 	defer close(k.Quit)
 
 	go k.decode()
+
 	return k.unmarshalData()
 }
 
@@ -61,10 +62,10 @@ func (k *KeywordsFinder) findValues() {
 	}
 }
 
-func (k *KeywordsFinder) unmarshalData() []planet.Planet {
+func (k *KeywordsFinder) unmarshalData() []*planet.Planet {
 	var (
-		result []planet.Planet
-		p      planet.Planet
+		result []*planet.Planet
+		p      *planet.Planet
 		i      int
 	)
 	for {
@@ -72,7 +73,7 @@ func (k *KeywordsFinder) unmarshalData() []planet.Planet {
 		case v := <-k.Ch:
 			switch i % 3 {
 			case 0:
-				p = planet.Planet{Name: v}
+				p = &planet.Planet{Name: v}
 			case 1:
 				p.Climate = v
 			case 2:

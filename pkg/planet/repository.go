@@ -2,6 +2,7 @@ package planet
 
 import (
 	"context"
+	"planets-api/api/database"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -12,7 +13,7 @@ type (
 	// Repository interface allows us to access the CRUD Operations of mongoDB.
 	Repository interface {
 		Create(planet *Planet) (*Planet, error)
-		ReadAll() (*[]Planet, error)
+		ReadAll() ([]*Planet, error)
 		ReadOne(id string) (*Planet, error)
 		Update(planet *Planet) (*Planet, error)
 		Delete(id string) error
@@ -23,8 +24,10 @@ type (
 )
 
 // NewRepository constructor instantiates a new Repository.
-func NewRepository(collection *mongo.Collection) Repository {
-	return &repository{Collection: collection}
+func NewRepository() Repository {
+	return &repository{
+		Collection: database.Connection().Collection("planets"),
+	}
 }
 
 // Create just register a planet data in database.
@@ -41,8 +44,8 @@ func (r *repository) Create(planet *Planet) (*Planet, error) {
 }
 
 // ReadAll returns the entire data found in planets mongoDB collection.
-func (r *repository) ReadAll() (*[]Planet, error) {
-	var planets []Planet
+func (r *repository) ReadAll() ([]*Planet, error) {
+	var planets []*Planet
 	cursor, err := r.Collection.Find(
 		context.Background(),
 		bson.D{},
@@ -51,11 +54,11 @@ func (r *repository) ReadAll() (*[]Planet, error) {
 		return nil, err
 	}
 	for cursor.Next(context.TODO()) {
-		var planet Planet
+		var planet *Planet
 		_ = cursor.Decode(&planet)
 		planets = append(planets, planet)
 	}
-	return &planets, nil
+	return planets, nil
 }
 
 // ReadOne finds and returns the data of a single planet.

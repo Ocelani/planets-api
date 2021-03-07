@@ -3,14 +3,14 @@ package database
 import (
 	"context"
 	"log"
-	"planets-api/pkg/planet"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-const dbURI = "mongodb://username:password@localhost:27017/fiber"
+const dbURI = "mongodb://admin:admin@localhost:27017"
 
 func Connection() *mongo.Database {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
@@ -18,12 +18,10 @@ func Connection() *mongo.Database {
 	if err != nil {
 		log.Fatal("Database Connection Error $s", err)
 	}
-	return client.Database("planets-api")
-}
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		log.Fatal("Database Connection Error $s", err)
+	}
 
-// Planets returns its collection repository service.
-func Planets() planet.Service {
-	db := Connection().Collection("planets")
-	repo := planet.NewRepository(db)
-	return planet.NewService(repo)
+	return client.Database("challenge")
 }
