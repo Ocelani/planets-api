@@ -16,11 +16,11 @@ func Connection() *mongo.Database {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(dbURI))
 	if err != nil {
-		log.Fatal("Database Connection Error $s", err)
+		log.Fatal("Database Connection Error", err)
 	}
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
-		log.Fatal("Database Connection Error $s", err)
+		log.Fatal("Database Connection Error", err)
 	}
 
 	return client.Database("challenge")

@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"planets-api/api/responses"
+	"fmt"
 	"planets-api/pkg/planet"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,11 +9,10 @@ import (
 
 // Planet defines the URL routing for Planet.
 func Planet(app fiber.Router, service planet.Service) {
-	app.Get("/planet", getAllPlanets(service))
-	app.Get("/planet/:id", getOnePlanet(service))
 	app.Post("/planet", addPlanet(service))
-	app.Put("/planet", updatePlanet(service))
 	app.Delete("/planet/:id", removePlanet(service))
+	app.Get("/planet", getAllPlanets(service))
+	app.Get("/planet/:find", getOnePlanet(service))
 }
 
 // addPlanet through API service request.
@@ -21,28 +20,20 @@ func addPlanet(service planet.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		var reqBody planet.Planet
 		if err := c.BodyParser(&reqBody); err != nil {
-			return responses.BadRequest(c, err)
+			return c.Status(400).SendString(fmt.Sprint(err, reqBody))
 		}
-		result, err := service.Insert(&reqBody)
+		if find, err := service.FindOneWithName(reqBody.Name); find != nil {
+			if err != nil {
+				return c.Status(400).SendString(fmt.Sprint(err, reqBody))
+			}
+			return c.Status(200).JSON(find)
+		}
+		res, err := service.Insert(&reqBody)
 		if err != nil {
-			return responses.UnprocessableEntity(c, err)
+			return c.Status(422).SendString(fmt.Sprint(err))
 		}
-		return responses.Created(c, result)
-	}
-}
 
-// updatePlanet through API client request.
-func updatePlanet(service planet.Service) fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		var reqBody planet.Planet
-		if err := c.BodyParser(&reqBody); err != nil {
-			return responses.BadRequest(c, err)
-		}
-		result, err := service.Update(&reqBody)
-		if err != nil {
-			return responses.UnprocessableEntity(c, err)
-		}
-		return responses.ResetContent(c, result)
+		return c.Status(201).JSON(res)
 	}
 }
 
@@ -51,9 +42,10 @@ func removePlanet(service planet.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		id := c.Params("id")
 		if err := service.Remove(id); err != nil {
-			return responses.UnprocessableEntity(c, err)
+			return c.Status(422).SendString(fmt.Sprint(err))
 		}
-		return responses.ResetContent(c, id)
+
+		return c.Status(200).SendString(id)
 	}
 }
 
@@ -62,20 +54,30 @@ func getAllPlanets(service planet.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		result, err := service.FindAll()
 		if err != nil {
-			return responses.UnprocessableEntity(c, err)
+			return c.Status(422).SendString(fmt.Sprint(err))
 		}
-		return responses.OK(c, result)
+
+		return c.Status(200).JSON(result)
 	}
 }
 
-// getOnePlanet through API client request.
+// getOnePlanetWithID through API client request.
 func getOnePlanet(service planet.Service) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		id := c.Params("id")
-		result, err := service.FindOne(id)
-		if err != nil {
-			return responses.UnprocessableEntity(c, err)
+		var (
+			err    error
+			result *planet.Planet
+			params = c.Params("find")
+		)
+		if len(params) == 24 { // id
+			result, err = service.FindOneWithID(params)
+		} else { // name
+			result, err = service.FindOneWithName(params)
 		}
-		return responses.OK(c, result)
+		if err != nil {
+			return c.Status(422).SendString(fmt.Sprint(err))
+		}
+
+		return c.Status(200).JSON(result)
 	}
 }

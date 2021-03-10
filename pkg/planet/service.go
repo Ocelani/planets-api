@@ -1,45 +1,53 @@
 package planet
 
+import "go.mongodb.org/mongo-driver/mongo"
+
 type (
 	// Service is an interface from which our api module can access our repository.
-	Service interface {
-		Insert(planet *Planet) (*Planet, error)
-		FindAll() ([]*Planet, error)
-		FindOne(id string) (*Planet, error)
-		Update(planet *Planet) (*Planet, error)
-		Remove(id string) error
-	}
-	service struct {
-		repository Repository
+	// Service interface {
+	// 	Insert(planet *Planet) (*Planet, error)
+	// 	FindAll() (*[]Planet, error)
+	// 	FindOneWithID(id string) (*Planet, error)
+	// 	FindOneWithName(name string) (*Planet, error)
+	// 	Update(planet *Planet) (*Planet, error)
+	// 	Remove(id string) error
+	// }
+	Service struct {
+		repository *Repository
 	}
 )
 
-// NewService is used to create a single instance of the service.
-func NewService() Service {
-	return &service{repository: NewRepository()}
+// NewService is used to create a single instance of the Service.
+func NewService(collection *mongo.Collection) *Service {
+	return &Service{repository: NewRepository(collection)}
 }
 
 // Insert Planet.
-func (s *service) Insert(planet *Planet) (*Planet, error) {
+func (s *Service) Insert(planet *Planet) (*Planet, error) {
 	return s.repository.Create(planet)
 }
 
 // FindAll Planets.
-func (s *service) FindAll() ([]*Planet, error) {
+func (s *Service) FindAll() (*[]Planet, error) {
 	return s.repository.ReadAll()
 }
 
 // FindOne Planet.
-func (s *service) FindOne(id string) (*Planet, error) {
-	return s.repository.ReadOne(id)
+func (s *Service) FindOneWithID(id string) (*Planet, error) {
+	return s.repository.ReadOneWithID(id)
+}
+
+// FindOne Planet.
+func (s *Service) FindOneWithName(name string) (*Planet, error) {
+	return s.repository.ReadOneWithName(name)
 }
 
 // Update Planet.
-func (s *service) Update(planet *Planet) (*Planet, error) {
+func (s *Service) Update(planet *Planet) (*Planet, error) {
 	return s.repository.Update(planet)
 }
 
 // Remove Planet.
-func (s *service) Remove(id string) error {
+func (s *Service) Remove(id string) error {
 	return s.repository.Delete(id)
 }
