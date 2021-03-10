@@ -10,5 +10,5 @@ type Planet struct {
 	Name    string             `json:"name" binding:"required,min=2" bson:"name"` // Nome
 	Climate string             `json:"climate" bson:"climate,omitempty"`          // Clima
 	Terrain string             `json:"terrain" bson:"terrain,omitempty"`          // Terreno, Solo
-	// Films   string             `json:"films" bson:"films,omitempty"`              // Nº de aparições em filmes
+	Films   int                `json:"films" bson:"films,omitempty"`              // Nº de aparições em filmes
 }
